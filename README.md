@@ -56,6 +56,6 @@ should do it.
 Example output
 --------------
 
-	"HashOf10","DateIPAdID","adcount"
 	"37693cfc748049e45d87b8c7d8b9aacd","2013011720024058205168000000010002","1"
 	"37693cfc748049e45d87b8c7d8b9aacd","2013011720050084232194000000010002","1"
+	"HashOf10","DateIPAdID","adcount"

@@ -2,7 +2,7 @@ var program = require('commander');
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./config.json');
 var dynamoDB = new AWS.DynamoDB();
-var headers = [];
+var headersMap = {};
 
 program.version('0.0.1').option('-t, --table [tablename]', 'Add the table you want to output to csv').option("-d, --describe").parse(process.argv);
 
@@ -38,12 +38,13 @@ var scanDynamoDB = function(query) {
     dynamoDB.scan(query, function(err, data) {
 
         if (!err) {
-
             printout(data.Items) // Print out the subset of results.
             if (data.LastEvaluatedKey) { // Result is incomplete; there is more to come.
                 query.ExclusiveStartKey = data.LastEvaluatedKey;
                 scanDynamoDB(query);
-            };
+            } else {
+                console.log(arrayToCSV(getHeaders()))
+            }
         } else console.dir(err);
 
     });
@@ -59,26 +60,27 @@ function arrayToCSV(array_input) {
     return string_output;
 }
 
+function getHeaders() {
+    var headers = []
+    for (var key in headersMap) {
+        headers.push(key);
+    }
+    return headers;
+}
+
 function printout(items) {
-    var headersMap = {};
     var values;
     var header;
     var value;
 
-    if (headers.length == 0) {
-        if (items.length > 0) {
-            for (var i = 0; i < items.length; i++) {
-                for (var key in items[i]) {
-                    headersMap[key] = true;
-                }
-            }
+    if (items.length > 0) {
+        for (var i = 0; i < items.length; i++) {
+            for (var key in items[i]) {
+               headersMap[key] = true;
+           }
         }
-        for (var key in headersMap) {
-            headers.push(key);
-        }
-        console.log(arrayToCSV(headers))
     }
-
+    var headers = getHeaders()
     for (index in items) {
         values = [];
         for (i = 0; i < headers.length; i++) {
@@ -110,5 +112,8 @@ function printout(items) {
     }
 }
 
-if (program.describe) describeTable(query);
-else scanDynamoDB(query);
+if (program.describe) {
+    describeTable(query);
+} else {
+    scanDynamoDB(query);
+};
